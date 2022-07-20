@@ -17,17 +17,20 @@ namespace EntityComponentSystem
     {
         public Entity GameEntity { get; set; }
         void Update();
+        void Start();
     }
     public interface RenderComponent
     {
         public Entity GameEntity { get; set; }
         public float Layer { get; set; }
+        void Start();
         void Update();
     }
     public interface UIRenderComponent
     {
         public Entity GameEntity { get; set; }
         public float Layer { get; set; }
+        void Start();
         void Update();
     }
     class ITranform : IComponent
@@ -41,6 +44,11 @@ namespace EntityComponentSystem
             Positon = _Position;
             Scale = _Scale;
             Rotation = _Rotation;
+        }
+        public void Start()
+        {
+
+
         }
         public void Update()
         {
@@ -61,14 +69,16 @@ namespace EntityComponentSystem
             Layer = _Layer;
             Origin = _Origin;
         }
+        private ITranform T;
+        public void Start()
+        {
+            T = GameEntity.GetComponent<ITranform>();
+        }
         public void Update()
         {
-            if (GameEntity == null) return;
-            var T = GameEntity.GetComponent<ITranform>();
-            if (T == null) return;
+            if (GameEntity == null || GameEntity.EntityState == State.Disabled) return;
             Rectangle Source = new Rectangle(0, 0, Texture.Width, Texture.Height);
             Manager.DrawBatch.Draw(Texture, T.Positon, Source, Color.White, 0, Origin, T.Scale, SpriteEffects.None, 0);
-
         }
     }
     class IGuiTexture : UIRenderComponent
@@ -85,11 +95,16 @@ namespace EntityComponentSystem
             Layer = _Layer;
             Origin = _Origin;
         }
+
+        private ITranform T;
+
+        public void Start()
+        {
+            T = GameEntity.GetComponent<ITranform>();
+        }
         public void Update()
         {
             if (GameEntity == null) return;
-            var T = GameEntity.GetComponent<ITranform>();
-            if (T == null) return;
             Rectangle Source = new Rectangle(0, 0, Texture.Width, Texture.Height);
             Manager.DrawBatch.Draw(Texture, T.Positon, Source, Color.White, 0, Origin, T.Scale, SpriteEffects.None, 1);
 
@@ -108,19 +123,17 @@ namespace EntityComponentSystem
         static Vector2 ClickPos;
         static Vector2 TargetPos;
         static Vector2 InitialCamPos;
-        public static float CameraZoomSpeed = 10f;
+        public static float CameraZoomSpeed = 25f;
         public static float CameraLerpSpeed = 6f;
 
         float CurrentZoom;
 
+
+        public void Start() { }
         public void Update()
         {
 
-
-
             var MouseS = MouseExtended.GetState();
-
-
             CurrentZoom -= (MouseS.DeltaScrollWheelValue / 120) * Time.DeltaTime * CameraZoomSpeed * MainCamera.Zoom;
             CurrentZoom = Math.Clamp(CurrentZoom, MainCamera.MinimumZoom, MainCamera.MaximumZoom);
             MainCamera.Zoom = CurrentZoom;
@@ -153,7 +166,10 @@ namespace EntityComponentSystem
         public const int MAXIMUM_SAMPLES = 100;
         private Queue<float> _sampleBuffer = new Queue<float>();
 
+        public void Start()
+        {
 
+        }
         public void Update()
         {
             CurrentFramesPerSecond = 1.0f / Time.DeltaTime;

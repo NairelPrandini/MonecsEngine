@@ -23,15 +23,29 @@ public class MainGame : Game
         Time.GTime = DeltaTime;
         ECSManager.Update();
 
+
+        if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+        {
+            for (int i = 0; i < ECSManager.GameEntityes.Count; i++)
+            {
+                var E = ECSManager.GameEntityes[i];
+
+                if (E.Tag != "Camera" && E.Tag != "FrameDisplay")
+                {
+                    E.EntityState = State.Disabled;
+                }
+            }
+        }
+
     }
     protected override void Draw(GameTime DeltaTime)
     {
         base.Draw(DeltaTime);
         GraphicsDevice.Clear(Color.CornflowerBlue);
-        DrawBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, transformMatrix: MainCamera.GetViewMatrix());
+        DrawBatch.Begin(sortMode: SpriteSortMode.Texture, blendState: BlendState.AlphaBlend, samplerState: SamplerState.PointClamp, transformMatrix: MainCamera.GetViewMatrix());
         ECSManager.WorldRender();
         DrawBatch.End();
-        DrawBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
+        DrawBatch.Begin(sortMode: SpriteSortMode.Texture, blendState: BlendState.AlphaBlend, samplerState: SamplerState.PointClamp);
         ECSManager.UIRender();
         DrawBatch.End();
     }
@@ -39,6 +53,7 @@ public class MainGame : Game
     {
         base.LoadContent();
         Textures.Miku = Content.Load<Texture2D>(@"Textures\Miku");
+        Textures.TestSprite = Content.Load<Texture2D>(@"Textures\TestSprite");
         Fonts.Default = Content.Load<SpriteFont>(@"Fonts\Default");
     }
     protected override void Initialize()
@@ -56,12 +71,27 @@ public class MainGame : Game
         IsFixedTimeStep = false;
         GraphicsManager.ApplyChanges();
 
-
         //---------------------------------------------------------
-        var CameraMover = new Entity();
+        var CameraMover = new Entity("Camera");
         CameraMover.AddComponent(new ICameraMovement());
-        var FrameCounterDisplay = new Entity();
+
+        var FrameCounterDisplay = new Entity("FrameDisplay");
         FrameCounterDisplay.AddGUIComponent(new IFrameRateDisplay());
+
+        for (int i = 0; i < 1000; i++)
+        {
+            var Miku = new Entity();
+            Miku.AddComponent(new ITranform(ExtendedMath.RandomInsideRadius(3000), Vector2.One / 10, 0));
+            Miku.AddRenderComponent(new ITexture(Textures.Miku, Vector2.Zero, Color.White, 0));
+        }
+
+
+        var GuiMiku = new Entity();
+        GuiMiku.AddComponent(new ITranform(Vector2.Zero, Vector2.One, 0));
+        GuiMiku.AddGUIComponent(new IGuiTexture(Textures.Miku, Vector2.Zero, Color.White, 0));
+
+
+
 
 
 
