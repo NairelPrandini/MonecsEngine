@@ -19,27 +19,26 @@ namespace EntityComponentSystem
             Tag = _Tag;
             ID = _ID;
             EntityState = _State;
-            ECSManager.GameEntityes.Add(this);
         }
-        public void AddComponent(IComponent C)
+        public void AddComponent(Component C)
         {
             C.GameEntity = this;
             ECSManager.GameComponents.Add(C);
             C.Start();
         }
-        public void AddGUIComponent(UIRenderComponent C)
+        public void AddGUIComponent(UIComponent C)
         {
             C.GameEntity = this;
-            ECSManager.UIRenderComponents.Add(C);
+            ECSManager.UIComponents.Add(C);
             C.Start();
         }
         public void AddRenderComponent(RenderComponent C)
         {
             C.GameEntity = this;
-            ECSManager.WorldRenderComponents.Add(C);
+            ECSManager.WorldComponents.Add(C);
             C.Start();
         }
-        public T GetComponent<T>() where T : IComponent
+        public T GetComponent<T>() where T : Component
         {
             foreach (var Component in ECSManager.GameComponents)
             {
@@ -48,9 +47,9 @@ namespace EntityComponentSystem
             }
             return default(T);
         }
-        public T GetGUIComponent<T>() where T : UIRenderComponent
+        public T GetGUIComponent<T>() where T : UIComponent
         {
-            foreach (var Component in ECSManager.UIRenderComponents)
+            foreach (var Component in ECSManager.UIComponents)
             {
                 if (this != Component.GameEntity) continue;
                 if (Component.GetType().Equals(typeof(T))) return (T)Component;
@@ -59,7 +58,7 @@ namespace EntityComponentSystem
         }
         public T GeRenderComponent<T>() where T : RenderComponent
         {
-            foreach (var Component in ECSManager.WorldRenderComponents)
+            foreach (var Component in ECSManager.WorldComponents)
             {
                 if (this != Component.GameEntity) continue;
                 if (Component.GetType().Equals(typeof(T))) return (T)Component;

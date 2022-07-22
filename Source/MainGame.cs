@@ -3,9 +3,13 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using EntityComponentSystem;
 using MonoGame.Extended;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using MonoGame;
 using Monecs;
 using System;
+using System.Timers;
 using static Monecs.Manager;
 
 public class MainGame : Game
@@ -22,32 +26,19 @@ public class MainGame : Game
         Time.DeltaTime = (float)DeltaTime.ElapsedGameTime.TotalSeconds;
         Time.GTime = DeltaTime;
         ECSManager.Update();
-
-
-        if (Keyboard.GetState().IsKeyDown(Keys.Escape))
-        {
-            for (int i = 0; i < ECSManager.GameEntityes.Count; i++)
-            {
-                var E = ECSManager.GameEntityes[i];
-
-                if (E.Tag != "Camera" && E.Tag != "FrameDisplay")
-                {
-                    E.EntityState = State.Disabled;
-                }
-            }
-        }
-
     }
+
     protected override void Draw(GameTime DeltaTime)
     {
         base.Draw(DeltaTime);
         GraphicsDevice.Clear(Color.CornflowerBlue);
-        DrawBatch.Begin(sortMode: SpriteSortMode.Texture, blendState: BlendState.AlphaBlend, samplerState: SamplerState.PointClamp, transformMatrix: MainCamera.GetViewMatrix());
+        DrawBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null, MainCamera.GetViewMatrix());
         ECSManager.WorldRender();
         DrawBatch.End();
-        DrawBatch.Begin(sortMode: SpriteSortMode.Texture, blendState: BlendState.AlphaBlend, samplerState: SamplerState.PointClamp);
+        DrawBatch.Begin(sortMode: SpriteSortMode.Immediate, blendState: BlendState.AlphaBlend, samplerState: SamplerState.PointClamp);
         ECSManager.UIRender();
         DrawBatch.End();
+
     }
     protected override void LoadContent()
     {
@@ -55,6 +46,8 @@ public class MainGame : Game
         Textures.Miku = Content.Load<Texture2D>(@"Textures\Miku");
         Textures.TestSprite = Content.Load<Texture2D>(@"Textures\TestSprite");
         Fonts.Default = Content.Load<SpriteFont>(@"Fonts\Default");
+        Effects.Default = Content.Load<Effect>(@"Effects\Default");
+        Effects.Sepia = Content.Load<Effect>(@"Effects\Sepia");
     }
     protected override void Initialize()
     {
@@ -71,30 +64,27 @@ public class MainGame : Game
         IsFixedTimeStep = false;
         GraphicsManager.ApplyChanges();
 
-        //---------------------------------------------------------
+
         var CameraMover = new Entity("Camera");
         CameraMover.AddComponent(new ICameraMovement());
-
         var FrameCounterDisplay = new Entity("FrameDisplay");
         FrameCounterDisplay.AddGUIComponent(new IFrameRateDisplay());
 
-        for (int i = 0; i < 1000; i++)
+
+        for (int i = 0; i < 15000; i++)
         {
-            var Miku = new Entity();
-            Miku.AddComponent(new ITranform(ExtendedMath.RandomInsideRadius(3000), Vector2.One / 10, 0));
-            Miku.AddRenderComponent(new ITexture(Textures.Miku, Vector2.Zero, Color.White, 0));
+            var A = new Entity();
+            var T = new ITranform(ExtendedMath.RandomInsideRadius(10000), Vector2.One * 4, 0);
+            A.AddComponent(T);
+            A.AddRenderComponent(new ITexture(Textures.TestSprite, Pivots.BottomCenter, Color.White, 0));
         }
 
-
-        var GuiMiku = new Entity();
-        GuiMiku.AddComponent(new ITranform(Vector2.Zero, Vector2.One, 0));
-        GuiMiku.AddGUIComponent(new IGuiTexture(Textures.Miku, Vector2.Zero, Color.White, 0));
-
-
-
-
-
+        var PBMiku = new Entity("PBMiku");
+        PBMiku.AddComponent(new ITranform(new Vector2(100, 0), Vector2.One, 0));
+        PBMiku.AddGUIComponent(new IGuiTexture(Textures.Miku, Vector2.Zero, Color.White, 6));
+        var GUIMiku = new Entity();
+        GUIMiku.AddComponent(new ITranform(new Vector2(700, 200), Vector2.One * 10, 0));
+        GUIMiku.AddGUIComponent(new IGuiTexture(Textures.TestSprite, Vector2.Zero, Color.White, -1));
 
     }
-
 }

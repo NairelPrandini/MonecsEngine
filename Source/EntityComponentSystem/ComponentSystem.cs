@@ -10,65 +10,24 @@ namespace EntityComponentSystem
 {
     public class ComponentSystem
     {
-        public List<Entity> GameEntityes = new List<Entity>();
-        public List<IComponent> GameComponents = new List<IComponent>();
-        public List<RenderComponent> WorldRenderComponents = new List<RenderComponent>();
-        public List<UIRenderComponent> UIRenderComponents = new List<UIRenderComponent>();
-
+        public List<Entity> EntitiesList = new List<Entity>();
+        public List<Component> GameComponents = new List<Component>();
+        public List<RenderComponent> WorldComponents = new List<RenderComponent>();
+        public List<UIComponent> UIComponents = new List<UIComponent>();
 
         public void WorldRender()
         {
-            List<RenderComponent> RenderList = WorldRenderComponents
-                        .ConvertAll(C => (RenderComponent)C)
-                            .OrderBy(C => C.Layer)
-                                .ToList();
-
-            foreach (RenderComponent E in RenderList)
-            {
-                if (E.GameEntity == null || E.GameEntity.EntityState == State.Disabled) continue;
-                E.Update();
-            }
+            WorldComponents = WorldComponents.OrderBy(C => C.Layer).ToList();
+            WorldComponents.ForEach(C => C.Update());
         }
         public void UIRender()
         {
-            List<UIRenderComponent> RenderList = UIRenderComponents
-                                  .ConvertAll(C => (UIRenderComponent)C)
-                                      .OrderBy(C => C.Layer)
-                                          .ToList();
-
-            foreach (UIRenderComponent E in RenderList)
-            {
-                if (E.GameEntity == null || E.GameEntity.EntityState == State.Disabled) continue;
-                E.Update();
-            }
+            UIComponents = UIComponents.OrderBy(C => C.Layer).ToList();
+            UIComponents.ForEach(C => C.Update());
         }
         public void Update()
         {
-            foreach (IComponent E in GameComponents)
-            {
-                if (E.GameEntity == null || E.GameEntity.EntityState == State.Disabled) continue;
-                E.Update();
-            }
-        }
-
-        public Entity GetEntityById(int ID)
-        {
-            for (int i = 0; i < GameEntityes.Count; i++)
-            {
-                if (GameEntityes[i].ID == ID)
-                    return GameEntityes[i];
-            }
-
-            return null;
-        }
-        public Entity GetEntityByTag(string Tag)
-        {
-            for (int i = 0; i < GameEntityes.Count; i++)
-            {
-                if (GameEntityes[i].Tag == Tag)
-                    return GameEntityes[i];
-            }
-            return null;
+            GameComponents.ForEach(C => C.Update());
         }
 
     }

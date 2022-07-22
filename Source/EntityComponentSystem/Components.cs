@@ -13,7 +13,7 @@ using static Monecs.Manager;
 
 namespace EntityComponentSystem
 {
-    public interface IComponent
+    public interface Component
     {
         public Entity GameEntity { get; set; }
         void Update();
@@ -26,14 +26,14 @@ namespace EntityComponentSystem
         void Start();
         void Update();
     }
-    public interface UIRenderComponent
+    public interface UIComponent
     {
         public Entity GameEntity { get; set; }
         public float Layer { get; set; }
         void Start();
         void Update();
     }
-    class ITranform : IComponent
+    class ITranform : Component
     {
         public Entity GameEntity { get; set; }
         public Vector2 Positon = Vector2.Zero;
@@ -58,18 +58,18 @@ namespace EntityComponentSystem
     class ITexture : RenderComponent
     {
         public Entity GameEntity { get; set; }
+        public float Layer { get; set; }
         public Color TextureColor;
         public Texture2D Texture;
-        public Vector2 Origin;
-        public float Layer { get; set; }
-        public ITexture(Texture2D _Texture, Vector2 _Origin, Color _TextureColor, float _Layer)
+        public Pivots TexturePivot;
+        private ITranform T;
+        public ITexture(Texture2D _Texture, Pivots _Pivot, Color _TextureColor, float _Layer)
         {
             Texture = _Texture;
             TextureColor = _TextureColor;
             Layer = _Layer;
-            Origin = _Origin;
+            TexturePivot = _Pivot;
         }
-        private ITranform T;
         public void Start()
         {
             T = GameEntity.GetComponent<ITranform>();
@@ -77,11 +77,13 @@ namespace EntityComponentSystem
         public void Update()
         {
             if (GameEntity == null || GameEntity.EntityState == State.Disabled) return;
+            Layer = T.Positon.Y;
             Rectangle Source = new Rectangle(0, 0, Texture.Width, Texture.Height);
+            Vector2 Origin = TextureUtilities.GetOrigin(TexturePivot, Source);
             Manager.DrawBatch.Draw(Texture, T.Positon, Source, Color.White, 0, Origin, T.Scale, SpriteEffects.None, 0);
         }
     }
-    class IGuiTexture : UIRenderComponent
+    class IGuiTexture : UIComponent
     {
         public Entity GameEntity { get; set; }
         public float Layer { get; set; }
@@ -92,12 +94,10 @@ namespace EntityComponentSystem
         {
             Texture = _Texture;
             TextureColor = _TextureColor;
-            Layer = _Layer;
             Origin = _Origin;
+            Layer = _Layer;
         }
-
         private ITranform T;
-
         public void Start()
         {
             T = GameEntity.GetComponent<ITranform>();
@@ -106,30 +106,32 @@ namespace EntityComponentSystem
         {
             if (GameEntity == null) return;
             Rectangle Source = new Rectangle(0, 0, Texture.Width, Texture.Height);
-            Manager.DrawBatch.Draw(Texture, T.Positon, Source, Color.White, 0, Origin, T.Scale, SpriteEffects.None, 1);
+            Manager.DrawBatch.Draw(Texture, T.Positon, Source, TextureColor, 0, Origin, T.Scale, SpriteEffects.None, 0);
 
         }
     }
-    class ICameraMovement : IComponent
+    class ICameraMovement : Component
     {
         public Entity GameEntity { get; set; }
         public ICameraMovement()
         {
             MainCamera.MinimumZoom = 0.1f;
-            MainCamera.MaximumZoom = 10f;
+            MainCamera.MaximumZoom = 0.85f;
             MainCamera.Origin = new Vector2(GDevice.Viewport.Width / 2, GDevice.Viewport.Height / 2);
-
         }
         static Vector2 ClickPos;
         static Vector2 TargetPos;
         static Vector2 InitialCamPos;
-        public static float CameraZoomSpeed = 25f;
+        public static float CameraZoomSpeed = 20f;
         public static float CameraLerpSpeed = 6f;
 
         float CurrentZoom;
 
 
-        public void Start() { }
+        public void Start()
+        {
+
+        }
         public void Update()
         {
 
@@ -154,7 +156,7 @@ namespace EntityComponentSystem
         }
 
     }
-    class IFrameRateDisplay : UIRenderComponent
+    class IFrameRateDisplay : UIComponent
     {
         public Entity GameEntity { get; set; }
         public float Layer { get; set; }
@@ -188,7 +190,7 @@ namespace EntityComponentSystem
 
             TotalFrames++;
             TotalSeconds += Time.DeltaTime;
-            DrawBatch.DrawString(Fonts.Default, $"FPS:{Math.Round(AverageFramesPerSecond)}", Vector2.One, Color.Black, 0f, Vector2.Zero, 1.25f, SpriteEffects.None, 0);
+            DrawBatch.DrawString(Fonts.Default, $"FPS:{Math.Round(AverageFramesPerSecond)}", Vector2.One * 20, Color.Black, 0f, Vector2.Zero, 1.25f, SpriteEffects.None, 0);
         }
 
 
